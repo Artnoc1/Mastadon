@@ -1,0 +1,32 @@
+{
+  "name": "mastadon",
+  "version": "1.0.0",
+  "description": "Screeps Code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jacob-Bass/Mastadon.git"
+  },
+  "author": "BasedDev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jacob-Bass/Mastadon/issues"
+  },
+  "homepage": "https://github.com/Jacob-Bass/Mastadon#readme",
+  "dependencies": {
+    "@types/lodash": "^4.14.110",
+    "@types/screeps": "^2.4.0",
+    "lodash": "^4.17.10"
+  },
+  "devDependencies": {
+    "source-map": "^0.6.1",
+    "ts-loader": "^4.4.2",
+    "typescript": "^2.9.2",
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8"
+  }
+}
