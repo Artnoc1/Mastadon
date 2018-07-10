@@ -1,4 +1,5 @@
+import * as RM from "./RoomManager/index"
 
 export const loop = function() {
-    console.log("hello world!");
+        RM.Setup()
 }

@@ -16,7 +16,7 @@ module.exports = function(grunt) {
                         expand: true,
                         cwd: 'dist/',
                         src: ['**/*.{js,wasm}'],
-                        flatten: true
+                        flatten: false
                     }
                 ]
             }
