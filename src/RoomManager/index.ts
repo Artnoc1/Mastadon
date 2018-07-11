@@ -1,9 +1,15 @@
-import {Global} from  "../Global";
+import {Global, RoomMemory} from  "../Global";
+import { StructureMap } from "./RoomManagerModels";
 
 export function Setup(){
     for (var key in Game.rooms) {
-        console.log(key, JSON.stringify(Game.rooms[key]));
-        console.log(JSON.stringify(Memory.rooms[key]));
+        var room = Game.rooms[key];
+        var roomMem: RoomMemory = Memory.rooms[key];
+        if(!roomMem.StructureMap){
+            Memory.rooms[key].StructureMap = new StructureMap();
+        }
+        
+        
       }
     
 }
