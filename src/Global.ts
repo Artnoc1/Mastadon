@@ -1,8 +1,17 @@
+import { StructureMap } from "./RoomManager/RoomManagerModels";
+
 
 export module Global{
     
 }
-export interface CreepMemory { [name: string]: any };
-export interface FlagMemory { [name: string]: any };
-export interface SpawnMemory { [name: string]: any };
-export interface RoomMemory { [name: string]: any };
+
+export class RoomMem{
+    StructMap:StructureMap;
+    /**
+     *
+     */
+    constructor(data: RoomMemory) {
+        this.StructMap = data.StructMap;
+        
+    }
+}
