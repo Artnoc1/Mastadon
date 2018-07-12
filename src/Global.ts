@@ -6,6 +6,7 @@ export module Global{
 }
 
 export class RoomMem{
+    isSetup:boolean =false;
     StructMap:StructureMap;
     /**
      *
