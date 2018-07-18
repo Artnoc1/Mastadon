@@ -39,9 +39,11 @@ function CreateStructureMap(room: Room){
 
 function CreateStartingPaths(room: Room){
     var spawn = room.find(FIND_MY_SPAWNS)[0];
-    (room.memory as RoomMem).StructMap.sourcemap.forEach(source => {
+    var rm = (room.memory as RoomMem);
+    rm.StructMap.sourcemap.forEach(source => {
         var opts: FindPathOpts  = {};
         var path = room.findPath(source.pos ,spawn.pos)
+        rm.pathSets.push(path);
         path.forEach(position => {
             room.createConstructionSite(position.x, position.y, STRUCTURE_ROAD);
         });        
@@ -50,10 +52,12 @@ function CreateStartingPaths(room: Room){
     if(room.controller){
         var ctr = (room.controller as StructureController);
         var path = room.findPath(spawn.pos, ctr.pos )
+        rm.pathSets.push(path);
         path.forEach(position => {
             room.createConstructionSite(position.x, position.y, STRUCTURE_ROAD);
         });
     }
+    room.memory = rm;
 }
 
 function CreatePathContainers(room: Room){
@@ -61,20 +65,21 @@ function CreatePathContainers(room: Room){
     var spawn = room.find(FIND_MY_SPAWNS)[0];
     console.log("Got Paths")
     console.log(JSON.stringify((room.memory as RoomMem)))
-    if((room.memory as RoomMem).StructMap){
-        console.log("before the loop");
-        (room.memory as RoomMem).StructMap.sourcemap.forEach(source => {
-            console.log("Da fuq", JSON.stringify(source));
-            console.log(JSON.stringify(spawn.pos));
-            var pos = spawn.pos
-            var path = room.findPath(source.pos ,pos);
-            console.log("da fuq again")
-            // var subPath = path.splice(2,path.length -2);
+    if((room.memory as RoomMem).pathSets){
+        
+        (room.memory as RoomMem).pathSets.forEach(path => {
             
-            // CheckSurroundings(subPath[0],room);
-            // path.forEach(position => {
-            //     var spot = CheckSurroundings(position,room);
-            // });        
+            console.log("path: ", path)
+            var subPath = path.splice(1,path.length -2);
+            for (let i = 0; i < subPath.length; i++) {
+                const spot = subPath[i];
+                var empty = CheckSurroundings(spot,room);
+                if(empty){
+                    room.createConstructionSite(empty.x,empty.y,STRUCTURE_CONTAINER);
+                    break;
+                }
+            }
+                    
         });
     }
     
@@ -88,7 +93,22 @@ function CheckSurroundings(pos: PathStep, room: Room){
     
     var location = null;
     var area = room.lookAtArea(top,left,bot,right,false);
-    console.log(JSON.stringify(area))
+    
+    console.log("Area: ",JSON.stringify(area))
+    for (var ykey in area){
+        var yCol = area[ykey];
+        for(var xkey in yCol){
+        
+            if(area[ykey][xkey].length==1&&(area[ykey][xkey] as any).terrain != "wall"){
+                location = {x:parseInt(xkey),y:parseInt(ykey)}
+                console.log("Selected spot: ", JSON.stringify(location))
+                break;
+            }
+        }
+        break;
+    }
+    
+
     return location;
 }
 
