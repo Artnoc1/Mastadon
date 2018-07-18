@@ -99,7 +99,7 @@ function CheckSurroundings(pos: PathStep, room: Room){
         var yCol = area[ykey];
         for(var xkey in yCol){
         
-            if(area[ykey][xkey].length==1&&(area[ykey][xkey] as any).terrain != "wall"){
+            if(area[ykey][xkey].length==1&&(area[ykey][xkey] as any)[0].terrain != "wall" ){
                 location = {x:parseInt(xkey),y:parseInt(ykey)}
                 console.log("Selected spot: ", JSON.stringify(location))
                 break;
