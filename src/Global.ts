@@ -6,13 +6,13 @@ export module Global{
 }
 
 export class RoomMem{
-    isSetup:boolean =false;
+    pathsSet:boolean =false;
+    containersSet:boolean = false;
     StructMap:StructureMap;
     /**
      *
      */
     constructor(data: RoomMemory) {
         this.StructMap = data.StructMap;
-        
     }
 }
