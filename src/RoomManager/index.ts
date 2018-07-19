@@ -51,7 +51,7 @@ function CreateStartingPaths(room: Room){
 
     if(room.controller){
         var ctr = (room.controller as StructureController);
-        var path = room.findPath(spawn.pos, ctr.pos )
+        var path = room.findPath(ctr.pos, spawn.pos)
         rm.pathSets.push(path);
         path.forEach(position => {
             room.createConstructionSite(position.x, position.y, STRUCTURE_ROAD);
