@@ -2341,8 +2341,36 @@ class RoomStatuses {
 }
 //# sourceMappingURL=GlobalModels.js.map
 
+class PopulationManager {
+    CreatePopulationQueue(room) {
+        room.memory.populationQueue = [
+            new PopulationQueueItem(CreepType.Miner, 6)
+        ];
+    }
+}
+class PopulationQueueItem {
+    /**
+     *
+     */
+    constructor(creepType, queueNumber) {
+        this.QueueNumber = 0;
+        this.CreepType = creepType;
+        if (queueNumber) {
+            this.QueueNumber = queueNumber;
+        }
+    }
+}
+var CreepType;
+(function (CreepType) {
+    CreepType[CreepType["Miner"] = 0] = "Miner";
+    CreepType[CreepType["Worker"] = 1] = "Worker";
+    CreepType[CreepType["Fighter"] = 2] = "Fighter";
+    CreepType[CreepType["Currier"] = 3] = "Currier";
+})(CreepType || (CreepType = {}));
+
 class RoomMapper {
     static provision() {
+        var pm = new PopulationManager();
         var rooms = Game.rooms;
         for (var name in rooms) {
             let currentRoom = rooms[name];
@@ -2352,6 +2380,7 @@ class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
+            pm.CreatePopulationQueue(currentRoom);
         }
     }
     static mapRooms(currentRoom) {

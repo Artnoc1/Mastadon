@@ -12,7 +12,8 @@ declare interface RoomMemory {
         sourcesMapped: boolean;
         roadsCreated: boolean;
         openSpacesCalced: boolean;
-    }
+    },
+    populationQueue: any[]
 };
 
 declare interface FlagMemory { [name: string]: any };
