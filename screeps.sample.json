@@ -1,0 +1,27 @@
+{
+  "main": {
+    "token": "YOUR_TOKEN",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "main"
+  },
+  "sim": {
+    "token": "YOUR_TOKEN",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "sim"
+  },
+  "pserver": {
+    "email": "Kaz",
+    "password": "Password",
+    "protocol": "http",
+    "hostname": "oppress.io",
+    "port": 21025,
+    "path": "/",
+    "branch": "main"
+  }
+}

@@ -1,0 +1,2 @@
+export { RoomMapper } from "./RoomMapper";
+
