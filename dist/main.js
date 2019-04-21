@@ -2343,15 +2343,60 @@ class RoomStatuses {
 
 class PopulationManager {
     CreatePopulationQueue(room) {
+        //TODO: At some point do this right
         room.memory.populationQueue = [
-            new PopulationQueueItem(CreepType.Miner, 6)
+            new PopulationQueueItem(CreepType.MINER, 6)
         ];
+    }
+    SpawnFromQueue(room) {
+        var queue = this.GetPopulationQueue(room);
+        var spawner = room.find(FIND_MY_SPAWNS)[0];
+        if (!spawner.spawning) {
+            var queueItem = this.GetTopOfQueue(queue);
+            if (queueItem) {
+                var body = this.GetBodyForCreepType(queueItem.CreepType);
+                var creepmemory = {
+                    role: queueItem.CreepType,
+                    room: room.name,
+                    working: false
+                };
+                var spawnOptions = {
+                    memory: creepmemory
+                };
+                //TODO: figure out better naming convention because this will break
+                var res = spawner.spawnCreep(body, queueItem.CreepType + new Date().getMilliseconds(), spawnOptions);
+                if (res == OK) {
+                    queueItem.QueueNumber -= 1;
+                }
+            }
+        }
+    }
+    GetPopulationQueue(room) {
+        return room.memory.populationQueue;
+    }
+    GetBodyForCreepType(type) {
+        switch (type) {
+            //Just miner for now until i figure out what the rest are gonna look like and how to progress as room levels up
+            case CreepType.MINER:
+                return [WORK, CARRY, MOVE];
+            default:
+                console.log("No preset body for creep type ", type);
+                return [WORK, CARRY, MOVE];
+        }
+    }
+    GetTopOfQueue(queue) {
+        var result = null;
+        for (let x = 0; x < queue.length; x++) {
+            var item = queue[x];
+            if (item.QueueNumber > 0) {
+                result = item;
+                break;
+            }
+        }
+        return result;
     }
 }
 class PopulationQueueItem {
-    /**
-     *
-     */
     constructor(creepType, queueNumber) {
         this.QueueNumber = 0;
         this.CreepType = creepType;
@@ -2362,10 +2407,10 @@ class PopulationQueueItem {
 }
 var CreepType;
 (function (CreepType) {
-    CreepType[CreepType["Miner"] = 0] = "Miner";
-    CreepType[CreepType["Worker"] = 1] = "Worker";
-    CreepType[CreepType["Fighter"] = 2] = "Fighter";
-    CreepType[CreepType["Currier"] = 3] = "Currier";
+    CreepType["MINER"] = "miner";
+    CreepType["WORKER"] = "worker";
+    CreepType["FIGHTER"] = "fighter";
+    CreepType["CURRIER"] = "currier";
 })(CreepType || (CreepType = {}));
 
 class RoomMapper {
@@ -2380,7 +2425,10 @@ class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
-            pm.CreatePopulationQueue(currentRoom);
+            if (!currentRoom.memory.populationQueue) {
+                pm.CreatePopulationQueue(currentRoom);
+            }
+            pm.SpawnFromQueue(currentRoom);
         }
     }
     static mapRooms(currentRoom) {

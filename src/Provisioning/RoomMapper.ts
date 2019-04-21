@@ -17,7 +17,10 @@ export class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
-            pm.CreatePopulationQueue(currentRoom);
+            if (!currentRoom.memory.populationQueue) {
+                pm.CreatePopulationQueue(currentRoom);
+            }
+            pm.SpawnFromQueue(currentRoom);
         }
     }
 
