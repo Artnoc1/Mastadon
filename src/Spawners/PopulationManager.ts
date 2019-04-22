@@ -61,6 +61,20 @@ export class PopulationManager {
         }
         return result;
     }
+
+    AdjustPopulationQueue(room: Room, type: CreepType, amount?: number) {
+        var pq = this.GetPopulationQueue(room);
+        var existing = _.find(pq, i => {
+            i.CreepType == type;
+        });
+        if (existing) {
+            existing.QueueNumber += (amount == null) ? 1 : amount;
+        }
+    }
+
+    SetPopulationQueue() {
+
+    }
 }
 
 export class PopulationQueueItem {
