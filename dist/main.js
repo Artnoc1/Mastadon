@@ -2330,7 +2330,6 @@ class ErrorMapper {
 }
 // Cache previously mapped traces to improve performance
 ErrorMapper.cache = {};
-//# sourceMappingURL=ErrorMapper.js.map
 
 class RoomStatuses {
     constructor() {
@@ -2339,17 +2338,16 @@ class RoomStatuses {
         this.openSpacesCalced = false;
     }
 }
-//# sourceMappingURL=GlobalModels.js.map
 
-class PopulationManager {
-    CreatePopulationQueue(room) {
+class SpawnManager {
+    CreateSpawnQueue(room) {
         //TODO: At some point do this right
-        room.memory.populationQueue = [
-            new PopulationQueueItem(CreepType.MINER, 6)
+        room.memory.spawnQueue = [
+            new SpawnQueueItem(CreepType.MINER, 6)
         ];
     }
     SpawnFromQueue(room) {
-        var queue = this.GetPopulationQueue(room);
+        var queue = this.GetSpawnQueue(room);
         var spawner = room.find(FIND_MY_SPAWNS)[0];
         if (!spawner.spawning) {
             var queueItem = this.GetTopOfQueue(queue);
@@ -2367,12 +2365,16 @@ class PopulationManager {
                 var res = spawner.spawnCreep(body, queueItem.CreepType + new Date().getMilliseconds(), spawnOptions);
                 if (res == OK) {
                     queueItem.QueueNumber -= 1;
+                    if (queueItem.QueueNumber == 0) {
+                        queue = queue.filter(item => {
+                        });
+                    }
                 }
             }
         }
     }
-    GetPopulationQueue(room) {
-        return room.memory.populationQueue;
+    GetSpawnQueue(room) {
+        return room.memory.spawnQueue;
     }
     GetBodyForCreepType(type) {
         switch (type) {
@@ -2395,8 +2397,20 @@ class PopulationManager {
         }
         return result;
     }
+    // AdjustSpawnQueue(room: Room, type: CreepType, amount?: number) {
+    //     var pq = this.GetSpawnQueue(room);
+    //     var existing = _.find(pq, i => {
+    //         i.CreepType == type;
+    //     });
+    //     if (existing) {
+    //         existing.QueueNumber += (amount == null) ? 1 : amount;
+    //     }
+    // }
+    AddToSpawnQueue(room, item) {
+        room.memory.spawnQueue.push(item);
+    }
 }
-class PopulationQueueItem {
+class SpawnQueueItem {
     constructor(creepType, queueNumber) {
         this.QueueNumber = 0;
         this.CreepType = creepType;
@@ -2408,14 +2422,18 @@ class PopulationQueueItem {
 var CreepType;
 (function (CreepType) {
     CreepType["MINER"] = "miner";
-    CreepType["WORKER"] = "worker";
     CreepType["FIGHTER"] = "fighter";
-    CreepType["CURRIER"] = "currier";
+    CreepType["CARRIER"] = "carrier";
+    CreepType["SCOUT"] = "scout";
+    CreepType["HEALER"] = "healer";
+    CreepType["SOLDIER"] = "soldier";
+    CreepType["BUILDER"] = "builder";
+    CreepType["SHOOTER"] = "shooter";
 })(CreepType || (CreepType = {}));
 
 class RoomMapper {
     static provision() {
-        var pm = new PopulationManager();
+        var pm = new SpawnManager();
         var rooms = Game.rooms;
         for (var name in rooms) {
             let currentRoom = rooms[name];
@@ -2425,8 +2443,8 @@ class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
-            if (!currentRoom.memory.populationQueue) {
-                pm.CreatePopulationQueue(currentRoom);
+            if (!currentRoom.memory.spawnQueue) {
+                pm.CreateSpawnQueue(currentRoom);
             }
             pm.SpawnFromQueue(currentRoom);
         }
@@ -2493,9 +2511,6 @@ class RoomMapper {
         return sum;
     }
 }
-//# sourceMappingURL=RoomMapper.js.map
-
-//# sourceMappingURL=index.js.map
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
@@ -2509,7 +2524,6 @@ const loop = ErrorMapper.wrapLoop(() => {
         }
     }
 });
-//# sourceMappingURL=main.js.map
 
 exports.loop = loop;
 //# sourceMappingURL=main.js.map

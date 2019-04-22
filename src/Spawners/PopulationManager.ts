@@ -1,14 +1,14 @@
-export class PopulationManager {
+export class SpawnManager {
 
-    CreatePopulationQueue(room: Room): void {
+    CreateSpawnQueue(room: Room): void {
         //TODO: At some point do this right
-        room.memory.populationQueue = [
-            new PopulationQueueItem(CreepType.MINER, 6)
+        room.memory.spawnQueue = [
+            new SpawnQueueItem(CreepType.MINER, 6)
         ]
     }
 
     SpawnFromQueue(room: Room) {
-        var queue = this.GetPopulationQueue(room);
+        var queue = this.GetSpawnQueue(room);
         var spawner = room.find(FIND_MY_SPAWNS)[0];
 
         if (!spawner.spawning) {
@@ -29,13 +29,18 @@ export class PopulationManager {
 
                 if (res == OK) {
                     queueItem.QueueNumber -= 1;
+                    if (queueItem.QueueNumber == 0) {
+                        queue = queue.filter(item => {
+                            item != queueItem;
+                        });
+                    }
                 }
             }
         }
     }
 
-    GetPopulationQueue(room: Room): PopulationQueueItem[] {
-        return room.memory.populationQueue;
+    GetSpawnQueue(room: Room): SpawnQueueItem[] {
+        return room.memory.spawnQueue;
     }
 
     GetBodyForCreepType(type: CreepType): BodyPartConstant[] {
@@ -50,7 +55,7 @@ export class PopulationManager {
         }
     }
 
-    GetTopOfQueue(queue: PopulationQueueItem[]): PopulationQueueItem | null {
+    GetTopOfQueue(queue: SpawnQueueItem[]): SpawnQueueItem | null {
         var result = null;
         for (let x = 0; x < queue.length; x++) {
             var item = queue[x];
@@ -62,22 +67,22 @@ export class PopulationManager {
         return result;
     }
 
-    AdjustPopulationQueue(room: Room, type: CreepType, amount?: number) {
-        var pq = this.GetPopulationQueue(room);
-        var existing = _.find(pq, i => {
-            i.CreepType == type;
-        });
-        if (existing) {
-            existing.QueueNumber += (amount == null) ? 1 : amount;
-        }
-    }
+    // AdjustSpawnQueue(room: Room, type: CreepType, amount?: number) {
+    //     var pq = this.GetSpawnQueue(room);
+    //     var existing = _.find(pq, i => {
+    //         i.CreepType == type;
+    //     });
+    //     if (existing) {
+    //         existing.QueueNumber += (amount == null) ? 1 : amount;
+    //     }
+    // }
 
-    SetPopulationQueue() {
-
+    AddToSpawnQueue(room: Room, item: SpawnQueueItem) {
+        room.memory.spawnQueue.push(item);
     }
 }
 
-export class PopulationQueueItem {
+export class SpawnQueueItem {
     constructor(creepType: CreepType, queueNumber?: number) {
         this.CreepType = creepType;
         if (queueNumber) {
@@ -90,7 +95,11 @@ export class PopulationQueueItem {
 
 export enum CreepType {
     MINER = "miner",
-    WORKER = "worker",
     FIGHTER = "fighter",
-    CURRIER = "currier"
+    CARRIER = "carrier",
+    SCOUT = "scout",
+    HEALER = "healer",
+    SOLDIER = "soldier",
+    BUILDER = "builder",
+    SHOOTER = "shooter"
 }

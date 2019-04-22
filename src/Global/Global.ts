@@ -13,7 +13,7 @@ declare interface RoomMemory {
         roadsCreated: boolean;
         openSpacesCalced: boolean;
     },
-    populationQueue: any[]
+    spawnQueue: any[]
 };
 
 declare interface FlagMemory { [name: string]: any };

@@ -1,12 +1,11 @@
 import * as _ from "lodash";
 import { RoomStatuses } from "Global/GlobalModels";
-import { PopulationManager } from "Spawners/PopulationManager";
-
+import { SpawnManager } from "Spawners";
 
 export class RoomMapper {
 
     static provision() {
-        var pm = new PopulationManager();
+        var pm = new SpawnManager();
         var rooms = Game.rooms
         for (var name in rooms) {
 
@@ -17,8 +16,8 @@ export class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
-            if (!currentRoom.memory.populationQueue) {
-                pm.CreatePopulationQueue(currentRoom);
+            if (!currentRoom.memory.spawnQueue) {
+                pm.CreateSpawnQueue(currentRoom);
             }
             pm.SpawnFromQueue(currentRoom);
         }
