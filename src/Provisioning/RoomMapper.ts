@@ -16,10 +16,12 @@ export class RoomMapper {
             this.mapRooms(currentRoom);
             this.createPaths(currentRoom);
             this.populateOpenSourceSpaces(currentRoom);
+            this.CreateSourceContainers(currentRoom);
             if (!currentRoom.memory.spawnQueue) {
                 pm.CreateSpawnQueue(currentRoom);
             }
             pm.SpawnFromQueue(currentRoom);
+
         }
     }
 
@@ -51,8 +53,6 @@ export class RoomMapper {
 
     private static populateOpenSourceSpaces(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped && currentRoom.memory.statuses.openSpacesCalced == false) {
-            console.log(JSON.stringify(currentRoom.memory.statuses));
-            console.log("Got here");
             var spaces: any[] = [];
             currentRoom.memory.sources.map(s => {
                 spaces.push({
@@ -88,5 +88,29 @@ export class RoomMapper {
         }
 
         return sum;
+    }
+
+    private static GetOpenSpaces() {
+
+    }
+
+    private static CreateSourceContainers(room: Room) {
+        if (room.memory.statuses.sourcesMapped) {
+
+            room.memory.sourcePaths.map(path => {
+                var step = path[path.length - 3];
+                //Try top
+
+                var res = room.createConstructionSite(step.x, step.y - 1, STRUCTURE_CONTAINER);
+                if (res != OK) {
+                    res = room.createConstructionSite(step.x, step.y + 1, STRUCTURE_CONTAINER);
+                } else if (res != OK) { //try bot
+                    res = room.createConstructionSite(step.x - 1, step.y, STRUCTURE_CONTAINER);
+                } else if (res != OK) { //try left
+                    res = room.createConstructionSite(step.x + 1, step.y, STRUCTURE_CONTAINER);
+                }
+                console.error("Could not place container for path");
+            });
+        }
     }
 }
