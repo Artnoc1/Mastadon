@@ -99,14 +99,13 @@ export class RoomMapper {
 
             room.memory.sourcePaths.map(path => {
                 var step = path[path.length - 3];
-                //Try top
 
                 var res = room.createConstructionSite(step.x, step.y - 1, STRUCTURE_CONTAINER);
                 if (res != OK) {
                     res = room.createConstructionSite(step.x, step.y + 1, STRUCTURE_CONTAINER);
-                } else if (res != OK) { //try bot
+                } else if (res != OK) {
                     res = room.createConstructionSite(step.x - 1, step.y, STRUCTURE_CONTAINER);
-                } else if (res != OK) { //try left
+                } else if (res != OK) {
                     res = room.createConstructionSite(step.x + 1, step.y, STRUCTURE_CONTAINER);
                 }
                 console.error("Could not place container for path");

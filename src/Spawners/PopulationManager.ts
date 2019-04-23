@@ -95,7 +95,6 @@ export class SpawnQueueItem {
 
 export enum CreepType {
     MINER = "miner",
-    FIGHTER = "fighter",
     CARRIER = "carrier",
     SCOUT = "scout",
     HEALER = "healer",
