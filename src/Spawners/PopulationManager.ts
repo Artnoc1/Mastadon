@@ -19,7 +19,8 @@ export class SpawnManager {
                 var creepmemory: CreepMemory = {
                     role: queueItem.CreepType,
                     room: room.name,
-                    working: false
+                    working: false,
+                    assignment: null
                 };
                 var spawnOptions: SpawnOptions = {
                     memory: creepmemory

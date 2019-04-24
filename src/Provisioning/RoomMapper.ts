@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { RoomStatuses } from "Global/GlobalModels";
+import { RoomStatuses, SourceData } from "Global/GlobalModels";
 import { SpawnManager } from "Spawners";
 
 export class RoomMapper {
@@ -29,23 +29,30 @@ export class RoomMapper {
 
         if (!currentRoom.memory.statuses.sourcesMapped) {
             let roomSources = currentRoom.find(FIND_SOURCES);
-            let sourcePaths: any[] = [];
-            currentRoom.memory.sources = roomSources;
-            roomSources.forEach(s => {
-                var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
-                sourcePaths.push(currentRoom.findPath(spawnPos, s.pos));
+            let sourcesData: SourceData[] = [];
+            roomSources.map(source => {
+                sourcesData.push(
+                    new SourceData(source)
+                )
             });
-            currentRoom.memory.sourcePaths = sourcePaths;
+
+            sourcesData.forEach(s => {
+                var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
+                s.paths.push(currentRoom.findPath(spawnPos, s.source.pos));
+            });
+            currentRoom.memory.sources = roomSources;
             currentRoom.memory.statuses.sourcesMapped = true;
         }
     }
 
     private static createPaths(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped) {
-            currentRoom.memory.sourcePaths.forEach(path => {
-                path.forEach(s => {
-                    currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
-                })
+            (currentRoom.memory.sources as SourceData[]).forEach(sourceData => {
+                sourceData.paths.map(path => {
+                    path.map(s => {
+                        currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
+                    });
+                });
             });
             currentRoom.memory.statuses.roadsCreated = true;
         }
@@ -53,14 +60,12 @@ export class RoomMapper {
 
     private static populateOpenSourceSpaces(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped && currentRoom.memory.statuses.openSpacesCalced == false) {
-            var spaces: any[] = [];
-            currentRoom.memory.sources.map(s => {
-                spaces.push({
-                    id: s.id,
-                    space: RoomMapper.CalculateOpenSpace(currentRoom, s.pos)
-                });
+            (currentRoom.memory.sources as SourceData[]).map(sourceData => {
+                sourceData.harvesterSpace = {
+                    max: RoomMapper.CalculateOpenSpace(currentRoom, sourceData.source.pos),
+                    creepNames: []
+                }
             });
-            currentRoom.memory.sourceSpaces = spaces;
             currentRoom.memory.statuses.openSpacesCalced = true;
         }
     }
@@ -97,18 +102,30 @@ export class RoomMapper {
     private static CreateSourceContainers(room: Room) {
         if (room.memory.statuses.sourcesMapped) {
 
-            room.memory.sourcePaths.map(path => {
-                var step = path[path.length - 3];
+            (room.memory.sources as SourceData[]).map(sourceData => {
+                sourceData.paths.map(path => {
+                    var step = path[path.length - 3];
+                    var rootX = step.x;
+                    var rootY = step.y;
+                    var x = 0, y = 0;
 
-                var res = room.createConstructionSite(step.x, step.y - 1, STRUCTURE_CONTAINER);
-                if (res != OK) {
-                    res = room.createConstructionSite(step.x, step.y + 1, STRUCTURE_CONTAINER);
-                } else if (res != OK) {
-                    res = room.createConstructionSite(step.x - 1, step.y, STRUCTURE_CONTAINER);
-                } else if (res != OK) {
-                    res = room.createConstructionSite(step.x + 1, step.y, STRUCTURE_CONTAINER);
-                }
-                console.error("Could not place container for path");
+                    x = rootX, y = rootY - 1;
+                    var res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    if (res != OK) {
+                        x = rootX, y = rootY + 1;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    } else if (res != OK) {
+                        x = rootX - 1, y = rootY;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    } else if (res != OK) {
+                        x = rootX + 1, y = rootY;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    }
+                    if (res == OK) {
+                        sourceData.defaultContainer = new RoomPosition(x, y, room.name);
+                    }
+                    //console.error("Could not place container for path");
+                });
             });
         }
     }
