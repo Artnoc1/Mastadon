@@ -2338,6 +2338,30 @@ class RoomStatuses {
         this.openSpacesCalced = false;
     }
 }
+class SourceData {
+    /**
+     *
+     */
+    constructor(source, harvesterSpace, paths, defaultContainer) {
+        this.paths = [];
+        this.source = source;
+        if (harvesterSpace) {
+            this.harvesterSpace = harvesterSpace;
+        }
+        else {
+            this.harvesterSpace = {
+                max: 0,
+                creepNames: []
+            };
+        }
+        if (paths) {
+            this.paths = paths;
+        }
+        if (defaultContainer) {
+            this.defaultContainer = defaultContainer;
+        }
+    }
+}
 
 class SpawnManager {
     CreateSpawnQueue(room) {
@@ -2356,7 +2380,8 @@ class SpawnManager {
                 var creepmemory = {
                     role: queueItem.CreepType,
                     room: room.name,
-                    working: false
+                    working: false,
+                    assignment: null
                 };
                 var spawnOptions = {
                     memory: creepmemory
@@ -2422,7 +2447,6 @@ class SpawnQueueItem {
 var CreepType;
 (function (CreepType) {
     CreepType["MINER"] = "miner";
-    CreepType["FIGHTER"] = "fighter";
     CreepType["CARRIER"] = "carrier";
     CreepType["SCOUT"] = "scout";
     CreepType["HEALER"] = "healer";
@@ -2453,21 +2477,25 @@ class RoomMapper {
     static mapRooms(currentRoom) {
         if (!currentRoom.memory.statuses.sourcesMapped) {
             let roomSources = currentRoom.find(FIND_SOURCES);
-            let sourcePaths = [];
-            currentRoom.memory.sources = roomSources;
-            roomSources.forEach(s => {
-                var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
-                sourcePaths.push(currentRoom.findPath(spawnPos, s.pos));
+            let sourcesData = [];
+            roomSources.map(source => {
+                sourcesData.push(new SourceData(source));
             });
-            currentRoom.memory.sourcePaths = sourcePaths;
+            sourcesData.forEach(s => {
+                var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
+                s.paths.push(currentRoom.findPath(spawnPos, s.source.pos));
+            });
+            currentRoom.memory.sources = roomSources;
             currentRoom.memory.statuses.sourcesMapped = true;
         }
     }
     static createPaths(currentRoom) {
         if (currentRoom.memory.statuses.sourcesMapped) {
-            currentRoom.memory.sourcePaths.forEach(path => {
-                path.forEach(s => {
-                    currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
+            currentRoom.memory.sources.forEach(sourceData => {
+                sourceData.paths.map(path => {
+                    path.map(s => {
+                        currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
+                    });
                 });
             });
             currentRoom.memory.statuses.roadsCreated = true;
@@ -2475,14 +2503,12 @@ class RoomMapper {
     }
     static populateOpenSourceSpaces(currentRoom) {
         if (currentRoom.memory.statuses.sourcesMapped && currentRoom.memory.statuses.openSpacesCalced == false) {
-            var spaces = [];
-            currentRoom.memory.sources.map(s => {
-                spaces.push({
-                    id: s.id,
-                    space: RoomMapper.CalculateOpenSpace(currentRoom, s.pos)
-                });
+            currentRoom.memory.sources.map(sourceData => {
+                sourceData.harvesterSpace = {
+                    max: RoomMapper.CalculateOpenSpace(currentRoom, sourceData.source.pos),
+                    creepNames: []
+                };
             });
-            currentRoom.memory.sourceSpaces = spaces;
             currentRoom.memory.statuses.openSpacesCalced = true;
         }
     }
@@ -2513,22 +2539,38 @@ class RoomMapper {
     }
     static CreateSourceContainers(room) {
         if (room.memory.statuses.sourcesMapped) {
-            room.memory.sourcePaths.map(path => {
-                var step = path[path.length - 3];
-                //Try top
-                var res = room.createConstructionSite(step.x, step.y - 1, STRUCTURE_CONTAINER);
-                if (res != OK) {
-                    res = room.createConstructionSite(step.x, step.y + 1, STRUCTURE_CONTAINER);
-                }
-                else if (res != OK) { //try bot
-                    res = room.createConstructionSite(step.x - 1, step.y, STRUCTURE_CONTAINER);
-                }
-                else if (res != OK) { //try left
-                    res = room.createConstructionSite(step.x + 1, step.y, STRUCTURE_CONTAINER);
-                }
-                console.error("Could not place container for path");
+            room.memory.sources.map(sourceData => {
+                sourceData.paths.map(path => {
+                    var step = path[path.length - 3];
+                    var rootX = step.x;
+                    var rootY = step.y;
+                    var x = 0, y = 0;
+                    x = rootX, y = rootY - 1;
+                    var res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    if (res != OK) {
+                        x = rootX, y = rootY + 1;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    }
+                    else if (res != OK) {
+                        x = rootX - 1, y = rootY;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    }
+                    else if (res != OK) {
+                        x = rootX + 1, y = rootY;
+                        res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
+                    }
+                    if (res == OK) {
+                        sourceData.defaultContainer = new RoomPosition(x, y, room.name);
+                    }
+                    //console.error("Could not place container for path");
+                });
             });
         }
+    }
+}
+
+class CreepManager {
+    static run() {
     }
 }
 
@@ -2537,6 +2579,7 @@ class RoomMapper {
 const loop = ErrorMapper.wrapLoop(() => {
     //console.log(`Current game tick is ${Game.time}`);
     RoomMapper.provision();
+    CreepManager.run();
     // Automatically delete memory of missing creeps
     for (const name in Memory.creeps) {
         if (!(name in Game.creeps)) {

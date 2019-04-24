@@ -122,7 +122,7 @@ export class RoomMapper {
                         res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
                     }
                     if (res == OK) {
-                        sourceData.defaultContainer = new RoomPosition(x, y, room.name);
+                        sourceData.defaultContainerPos = new RoomPosition(x, y, room.name);
                     }
                     //console.error("Could not place container for path");
                 });
