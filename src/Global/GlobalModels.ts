@@ -9,8 +9,7 @@ export class SourceData {
     /**
      *
      */
-    constructor(source: Source, harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainer?: StructureContainer) {
-        this.source = source;
+    constructor(harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainer?: StructureContainer) {
         if (harvesterSpace) {
             this.harvesterSpace = harvesterSpace;
         } else {
@@ -26,7 +25,7 @@ export class SourceData {
             this.defaultContainer = defaultContainer;
         }
     }
-    source: Source;
+    sourcePosition?: RoomPosition;
     harvesterSpace: {
         max: number,
         creepNames: string[]

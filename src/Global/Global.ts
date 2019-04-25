@@ -2,7 +2,7 @@ declare interface CreepMemory { [name: string]: any };
 declare interface SpawnMemory { [name: string]: any };
 
 declare interface RoomMemory {
-    sources: any[],
+    sources: { [id: string]: any },
     statuses: {
         sourcesMapped: boolean;
         roadsCreated: boolean;

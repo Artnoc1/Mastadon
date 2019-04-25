@@ -29,17 +29,17 @@ export class RoomMapper {
 
         if (!currentRoom.memory.statuses.sourcesMapped) {
             let roomSources = currentRoom.find(FIND_SOURCES);
-            let sourcesData: SourceData[] = [];
+            let sourcesData: { [id: string]: SourceData } = {};
             roomSources.map(source => {
-                sourcesData.push(
-                    new SourceData(source)
-                )
+                sourcesData[source.id] = new SourceData();
             });
 
-            sourcesData.forEach(s => {
+            _.forOwn(sourcesData, function (sourceData, key) {
+                var source = Game.getObjectById(key);
                 var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
-                s.paths.push(currentRoom.findPath(spawnPos, s.source.pos));
+                sourceData.paths.push(currentRoom.findPath(spawnPos, (source as Source).pos));
             });
+
             currentRoom.memory.sources = sourcesData;
             currentRoom.memory.statuses.sourcesMapped = true;
         }
@@ -47,10 +47,12 @@ export class RoomMapper {
 
     private static createPaths(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped) {
-            (currentRoom.memory.sources as SourceData[]).forEach(sourceData => {
-                sourceData.paths.map(path => {
+
+            _.forOwn(currentRoom.memory.sources, function (sourceData, key) {
+                (sourceData as SourceData).paths.map(path => {
                     path.map(s => {
                         currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
+                        (sourceData as SourceData).defaultContainerPos = new RoomPosition(s.x, s.y, currentRoom.name);
                     });
                 });
             });
@@ -60,12 +62,13 @@ export class RoomMapper {
 
     private static populateOpenSourceSpaces(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped && currentRoom.memory.statuses.openSpacesCalced == false) {
-            (currentRoom.memory.sources as SourceData[]).map(sourceData => {
+            _.forOwn((currentRoom.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
                 sourceData.harvesterSpace = {
-                    max: RoomMapper.CalculateOpenSpace(currentRoom, sourceData.source.pos),
+                    max: RoomMapper.CalculateOpenSpace(currentRoom, (sourceData.sourcePosition as RoomPosition)),
                     creepNames: []
                 }
             });
+
             currentRoom.memory.statuses.openSpacesCalced = true;
         }
     }
