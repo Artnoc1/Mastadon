@@ -40,7 +40,7 @@ export class RoomMapper {
                 var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
                 s.paths.push(currentRoom.findPath(spawnPos, s.source.pos));
             });
-            currentRoom.memory.sources = roomSources;
+            currentRoom.memory.sources = sourcesData;
             currentRoom.memory.statuses.sourcesMapped = true;
         }
     }

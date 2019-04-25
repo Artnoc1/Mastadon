@@ -49,6 +49,8 @@ export class SpawnManager {
             //Just miner for now until i figure out what the rest are gonna look like and how to progress as room levels up
             case CreepType.MINER:
                 return [WORK, CARRY, MOVE];
+            case CreepType.BUILDER:
+                return [WORK, CARRY, MOVE];
 
             default:
                 console.log("No preset body for creep type ", type);

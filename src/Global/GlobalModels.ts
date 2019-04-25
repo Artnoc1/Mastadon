@@ -2,13 +2,14 @@ export class RoomStatuses {
     sourcesMapped: boolean = false;
     roadsCreated: boolean = false;
     openSpacesCalced: boolean = false;
+    sourceContainersCreated: boolean = false;
 }
 
 export class SourceData {
     /**
      *
      */
-    constructor(source: Source, harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainer?: RoomPosition) {
+    constructor(source: Source, harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainer?: StructureContainer) {
         this.source = source;
         if (harvesterSpace) {
             this.harvesterSpace = harvesterSpace;
@@ -31,5 +32,6 @@ export class SourceData {
         creepNames: string[]
     };
     paths: PathStep[][] = [];
-    defaultContainer?: RoomPosition;
+    defaultContainer?: StructureContainer;
+    defaultContainerPos?: RoomPosition;
 }
