@@ -12,7 +12,9 @@ export class HarvesterCreep extends BaseCreep {
     DoMinerActions() {
         let target: any = null;
         if (!this.creep.memory.assignment) {
+            this.AssignSource();
             target = Game.getObjectById(this.creep.memory.assignment);
+            console.log("creep assn: ", this.creep.memory.assignment);
             (this.creep.room.memory.sources[this.creep.memory.assignment] as SourceData).harvesterSpace.creepNames.push(this.creep.name);
         } else {
             target = Game.getObjectById(this.creep.memory.assignment);

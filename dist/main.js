@@ -2343,8 +2343,9 @@ class SourceData {
     /**
      *
      */
-    constructor(harvesterSpace, paths, defaultContainer) {
+    constructor(harvesterSpace, paths, defaultContainerId) {
         this.paths = [];
+        this.defaultContainerCreated = false;
         if (harvesterSpace) {
             this.harvesterSpace = harvesterSpace;
         }
@@ -2357,8 +2358,8 @@ class SourceData {
         if (paths) {
             this.paths = paths;
         }
-        if (defaultContainer) {
-            this.defaultContainer = defaultContainer;
+        if (defaultContainerId) {
+            this.defaultContainerId = defaultContainerId;
         }
     }
 }
@@ -2367,7 +2368,7 @@ class SpawnManager {
     CreateSpawnQueue(room) {
         //TODO: At some point do this right
         room.memory.spawnQueue = [
-            new SpawnQueueItem(CreepType.MINER, 6)
+            new SpawnQueueItem(CreepType.MINER, 3)
         ];
     }
     SpawnFromQueue(room) {
@@ -2589,11 +2590,10 @@ class HarvesterCreep extends BaseCreep {
     DoMinerActions() {
         let target = null;
         if (!this.creep.memory.assignment) {
-            var sourceId = this.FindOpenSource();
-            target = Game.getObjectById(sourceId);
-            this.creep.memory.assignment = sourceId;
-            console.log("Creep ass: ", sourceId);
-            this.creep.room.memory.sources[sourceId].harvesterSpace.creepNames.push(this.creep.name);
+            this.AssignSource();
+            target = Game.getObjectById(this.creep.memory.assignment);
+            console.log("creep assn: ", this.creep.memory.assignment);
+            this.creep.room.memory.sources[this.creep.memory.assignment].harvesterSpace.creepNames.push(this.creep.name);
         }
         else {
             target = Game.getObjectById(this.creep.memory.assignment);
@@ -2604,10 +2604,24 @@ class HarvesterCreep extends BaseCreep {
             }
         }
         else if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-            let storage = this.TryGetDefaultContainer();
-            //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
-            if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                this.creep.moveTo(storage);
+            if (!this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated) {
+                target = this.FindClosestCoontainerConstruction();
+                if (target) {
+                    var res = this.creep.build(target);
+                    if (res == ERR_NOT_IN_RANGE) {
+                        this.creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+                    }
+                    else if (res == ERR_INVALID_TARGET) {
+                        this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated = true;
+                    }
+                }
+            }
+            else {
+                let storage = this.TryGetDefaultContainer();
+                //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
+                if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    this.creep.moveTo(storage);
+                }
             }
         }
     }
@@ -2625,6 +2639,10 @@ class HarvesterCreep extends BaseCreep {
         }
         return closest;
     }
+    AssignSource() {
+        var sourceId = this.FindOpenSource();
+        this.creep.memory.assignment = sourceId;
+    }
     FindOpenSource() {
         var creep = this.creep;
         var sourceId = _.findKey(this.creep.room.memory.sources, function (sourceData) {
@@ -2641,6 +2659,14 @@ class HarvesterCreep extends BaseCreep {
     }
     GetSourceData(sourceId) {
         return this.creep.room.memory.sources[sourceId];
+    }
+    FindClosestCoontainerConstruction() {
+        var container = this.creep.room.find(FIND_CONSTRUCTION_SITES, {
+            filter: function (site) {
+                return site.structureType == STRUCTURE_CONTAINER;
+            }
+        });
+        return container;
     }
 }
 
