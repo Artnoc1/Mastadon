@@ -20,7 +20,7 @@ export class SpawnManager {
                     role: queueItem.CreepType,
                     room: room.name,
                     working: false,
-                    assignment: null
+                    assignment: ""
                 };
                 var spawnOptions: SpawnOptions = {
                     memory: creepmemory
@@ -30,11 +30,11 @@ export class SpawnManager {
 
                 if (res == OK) {
                     queueItem.QueueNumber -= 1;
-                    if (queueItem.QueueNumber == 0) {
-                        queue = queue.filter(item => {
-                            item != queueItem;
-                        });
-                    }
+                    // if (queueItem.QueueNumber == 0) {
+                    //     queue = queue.filter(item => {
+                    //         item != queueItem;
+                    //     });
+                    // }
                 }
             }
         }
@@ -49,8 +49,8 @@ export class SpawnManager {
             //Just miner for now until i figure out what the rest are gonna look like and how to progress as room levels up
             case CreepType.MINER:
                 return [WORK, CARRY, MOVE];
-            case CreepType.BUILDER:
-                return [WORK, CARRY, MOVE];
+            // case CreepType.BUILDER:
+            //     return [WORK, CARRY, MOVE];
 
             default:
                 console.log("No preset body for creep type ", type);

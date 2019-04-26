@@ -5,7 +5,7 @@ interface CreepMemory {
   role: string;
   room: string;
   working: boolean;
-  assignment: any;
+  assignment: string;
 }
 
 interface Memory {

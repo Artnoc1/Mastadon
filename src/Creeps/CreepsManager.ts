@@ -8,8 +8,10 @@ export class CreepManager {
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
             if (creep.memory.role == CreepType.MINER) {
-                var harvester = new HarvesterCreep(creep);
-                harvester.run();
+                if (creep.room.memory.statuses.openSpacesCalced) {
+                    var harvester = new HarvesterCreep(creep);
+                    harvester.run();
+                }
             }
             if (creep.memory.role == CreepType.BUILDER) {
                 //Do builder stuff

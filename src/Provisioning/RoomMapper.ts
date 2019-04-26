@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+
 import { RoomStatuses, SourceData } from "Global/GlobalModels";
 import { SpawnManager } from "Spawners";
 
@@ -34,7 +34,7 @@ export class RoomMapper {
                 sourcesData[source.id] = new SourceData();
             });
 
-            _.forOwn(sourcesData, function (sourceData, key) {
+            _.forIn(sourcesData, function (sourceData, key) {
                 var source = Game.getObjectById(key);
                 var spawnPos = currentRoom.find(FIND_MY_SPAWNS)[0].pos;
                 sourceData.paths.push(currentRoom.findPath(spawnPos, (source as Source).pos));
@@ -48,7 +48,7 @@ export class RoomMapper {
     private static createPaths(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped) {
 
-            _.forOwn(currentRoom.memory.sources, function (sourceData, key) {
+            _.forIn(currentRoom.memory.sources, function (sourceData, key) {
                 (sourceData as SourceData).paths.map(path => {
                     path.map(s => {
                         currentRoom.createConstructionSite(s.x, s.y, STRUCTURE_ROAD);
@@ -62,9 +62,9 @@ export class RoomMapper {
 
     private static populateOpenSourceSpaces(currentRoom: Room) {
         if (currentRoom.memory.statuses.sourcesMapped && currentRoom.memory.statuses.openSpacesCalced == false) {
-            _.forOwn((currentRoom.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
+            _.forIn((currentRoom.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
                 sourceData.harvesterSpace = {
-                    max: RoomMapper.CalculateOpenSpace(currentRoom, (sourceData.sourcePosition as RoomPosition)),
+                    max: RoomMapper.CalculateOpenSpace(currentRoom, (Game.getObjectById(key) as StructureSpawn).pos),
                     creepNames: []
                 }
             });
@@ -80,7 +80,7 @@ export class RoomMapper {
         let right = position.x + 1;
         console.log("Looking at area...");
         let area = room.lookAtArea(top, left, bot, right);
-        console.log(JSON.stringify(area));
+
         var sum = 0;
         for (var y in area) {
             var col = area[y];
@@ -105,7 +105,7 @@ export class RoomMapper {
     private static CreateSourceContainers(room: Room) {
         if (room.memory.statuses.sourcesMapped) {
 
-            _.forOwn((room.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
+            _.forIn((room.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
                 sourceData.paths.map(path => {
                     var step = path[path.length - 3];
                     var rootX = step.x;
@@ -124,6 +124,7 @@ export class RoomMapper {
                         x = rootX + 1, y = rootY;
                         res = room.createConstructionSite(x, y, STRUCTURE_CONTAINER);
                     }
+
                     if (res == OK) {
                         sourceData.defaultContainerPos = new RoomPosition(x, y, room.name);
                     }
