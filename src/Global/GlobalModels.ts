@@ -9,7 +9,7 @@ export class SourceData {
     /**
      *
      */
-    constructor(harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainer?: string) {
+    constructor(harvesterSpace?: { max: number, creepNames: string[] }, paths?: PathStep[][], defaultContainerId?: string) {
         if (harvesterSpace) {
             this.harvesterSpace = harvesterSpace;
         } else {
@@ -21,8 +21,8 @@ export class SourceData {
         if (paths) {
             this.paths = paths;
         }
-        if (defaultContainer) {
-            this.defaultContainer = defaultContainer;
+        if (defaultContainerId) {
+            this.defaultContainerId = defaultContainerId;
         }
     }
     sourcePosition?: RoomPosition;
@@ -31,6 +31,7 @@ export class SourceData {
         creepNames: string[]
     };
     paths: PathStep[][] = [];
-    defaultContainer?: string;
+    defaultContainerId?: string;
+    defaultContainerCreated?: boolean = false;
     defaultContainerPos?: RoomPosition;
 }

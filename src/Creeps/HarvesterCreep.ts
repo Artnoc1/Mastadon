@@ -12,27 +12,36 @@ export class HarvesterCreep extends BaseCreep {
     DoMinerActions() {
         let target: any = null;
         if (!this.creep.memory.assignment) {
-            var sourceId = this.FindOpenSource() as string;
-            target = Game.getObjectById(sourceId);
-            this.creep.memory.assignment = sourceId;
-            console.log("Creep ass: ", sourceId);
-            (this.creep.room.memory.sources[sourceId] as SourceData).harvesterSpace.creepNames.push(this.creep.name);
+            target = Game.getObjectById(this.creep.memory.assignment);
+            (this.creep.room.memory.sources[this.creep.memory.assignment] as SourceData).harvesterSpace.creepNames.push(this.creep.name);
         } else {
             target = Game.getObjectById(this.creep.memory.assignment);
         }
 
         if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
             if (this.creep.harvest(target) == ERR_NOT_IN_RANGE) {
-
                 this.creep.moveTo(target);
             }
         }
         else if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-            let storage = this.TryGetDefaultContainer();
-            //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
-            if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                this.creep.moveTo(storage);
+            if (!this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated) {
+                target = this.FindClosestCoontainerConstruction();
+                if (target) {
+                    var res = this.creep.build(target);
+                    if (res == ERR_NOT_IN_RANGE) {
+                        this.creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+                    } else if (res == ERR_INVALID_TARGET) {
+                        this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated = true;
+                    }
+                }
+            } else {
+                let storage = this.TryGetDefaultContainer();
+                //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
+                if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    this.creep.moveTo(storage);
+                }
             }
+
         }
 
     }
@@ -54,6 +63,11 @@ export class HarvesterCreep extends BaseCreep {
         return closest as StructureContainer | StructureSpawn;
     }
 
+    AssignSource() {
+        var sourceId = this.FindOpenSource() as string;
+        this.creep.memory.assignment = sourceId;
+    }
+
     FindOpenSource(): string | null {
         var creep = this.creep;
         var sourceId = _.findKey((this.creep.room.memory.sources as { [id: string]: SourceData }), function (sourceData) {
@@ -72,5 +86,14 @@ export class HarvesterCreep extends BaseCreep {
         return this.creep.room.memory.sources[sourceId];
     }
 
+    FindClosestCoontainerConstruction() {
+        var container = this.creep.room.find(FIND_CONSTRUCTION_SITES, {
+            filter: function (site) {
+                return site.structureType == STRUCTURE_CONTAINER;
+            }
+        });
+
+        return container;
+    }
 
 }

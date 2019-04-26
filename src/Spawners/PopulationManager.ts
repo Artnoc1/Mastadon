@@ -3,7 +3,7 @@ export class SpawnManager {
     CreateSpawnQueue(room: Room): void {
         //TODO: At some point do this right
         room.memory.spawnQueue = [
-            new SpawnQueueItem(CreepType.MINER, 6)
+            new SpawnQueueItem(CreepType.MINER, 3)
         ]
     }
 
