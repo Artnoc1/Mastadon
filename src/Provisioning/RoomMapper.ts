@@ -105,7 +105,7 @@ export class RoomMapper {
     private static CreateSourceContainers(room: Room) {
         if (room.memory.statuses.sourcesMapped) {
 
-            (room.memory.sources as SourceData[]).map(sourceData => {
+            _.forOwn((room.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
                 sourceData.paths.map(path => {
                     var step = path[path.length - 3];
                     var rootX = step.x;

@@ -11,7 +11,6 @@ export class HarvesterCreep extends BaseCreep {
     }
 
     DoMinerActions() {
-
         let target = this.FindOpenSource();
         if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
             if (this.creep.harvest(target) == ERR_NOT_IN_RANGE) {
@@ -66,20 +65,7 @@ export class HarvesterCreep extends BaseCreep {
     }
 
     FindOpenSource(): Source {
-        var creep = this.creep;
-        var source = this.creep.pos.findClosestByRange(FIND_SOURCES, {
-            filter: function (source) {
-                var data = _.find(source.room.memory.sources, function (sourceData: SourceData) {
-                    return sourceData.source.id == source.id
-                })
-                return (data as SourceData).harvesterSpace.max > (data as SourceData).harvesterSpace.creepNames.length;
-            }
-        });
-        (this.creep.room.memory.sources as SourceData[]).filter(s => {
-            return s.harvesterSpace.creepNames.push(this.creep.name);
-        })
-        console.log("Found source: ", JSON.stringify(source));
-        return source as Source;
+
     }
 
 

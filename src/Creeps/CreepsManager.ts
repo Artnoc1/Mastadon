@@ -17,4 +17,8 @@ export class CreepManager {
         }
     }
 
+
+    static GetOpenSource() {
+
+    }
 }
