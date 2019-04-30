@@ -2572,6 +2572,7 @@ class RoomMapper {
                     //console.error("Could not place container for path");
                 });
             });
+            console.log("Containers created");
             room.memory.statuses.sourceContainersMapped = true;
         }
     }
@@ -2635,7 +2636,7 @@ class HarvesterCreep extends BaseCreep {
     }
     TryGetDefaultContainer() {
         var closest = null;
-        if (this.creep.room.memory.statuses.sourceContainersCreated) {
+        if (this.creep.room.memory.statuses.sourceContainersBuilt) {
             closest = this.creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: str => {
                     return str.structureType == STRUCTURE_CONTAINER;

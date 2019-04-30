@@ -45,7 +45,7 @@ export class HarvesterCreep extends BaseCreep {
 
     TryGetDefaultContainer(): StructureContainer | StructureSpawn {
         var closest = null;
-        if (this.creep.room.memory.statuses.sourceContainersCreated) {
+        if (this.creep.room.memory.statuses.sourceContainersBuilt) {
             closest = this.creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: str => {
                     return str.structureType == STRUCTURE_CONTAINER;
