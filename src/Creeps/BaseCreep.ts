@@ -11,4 +11,7 @@ export abstract class BaseCreep {
 
     abstract run(): void
 
+    survive() {
+
+    }
 }

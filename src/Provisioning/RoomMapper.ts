@@ -5,7 +5,7 @@ import { SpawnManager } from "Spawners";
 export class RoomMapper {
 
     static provision() {
-        var pm = new SpawnManager();
+
         var rooms = Game.rooms
         for (var name in rooms) {
 
@@ -18,9 +18,9 @@ export class RoomMapper {
             this.populateOpenSourceSpaces(currentRoom);
             this.CreateSourceContainers(currentRoom);
             if (!currentRoom.memory.spawnQueue) {
-                pm.CreateSpawnQueue(currentRoom);
+                SpawnManager.CreateSpawnQueue(currentRoom);
             }
-            pm.SpawnFromQueue(currentRoom);
+            SpawnManager.SpawnFromQueue(currentRoom);
 
         }
     }
@@ -103,7 +103,7 @@ export class RoomMapper {
     }
 
     private static CreateSourceContainers(room: Room) {
-        if (room.memory.statuses.sourcesMapped) {
+        if (room.memory.statuses.sourcesMapped && !room.memory.statuses.sourceContainersMapped) {
 
             _.forIn((room.memory.sources as { [id: string]: SourceData }), function (sourceData, key) {
                 sourceData.paths.map(path => {
@@ -131,6 +131,8 @@ export class RoomMapper {
                     //console.error("Could not place container for path");
                 });
             });
+            console.log("Containers created")
+            room.memory.statuses.sourceContainersMapped = true;
         }
     }
 }

@@ -1,13 +1,14 @@
 export class SpawnManager {
 
-    CreateSpawnQueue(room: Room): void {
+    static CreateSpawnQueue(room: Room): void {
         //TODO: At some point do this right
         room.memory.spawnQueue = [
-            new SpawnQueueItem(CreepType.MINER, 3)
+            new SpawnQueueItem(CreepType.MINER, 3),
+            new SpawnQueueItem(CreepType.BUILDER, 2)
         ]
     }
 
-    SpawnFromQueue(room: Room) {
+    static SpawnFromQueue(room: Room) {
         var queue = this.GetSpawnQueue(room);
         var spawner = room.find(FIND_MY_SPAWNS)[0];
 
@@ -19,7 +20,7 @@ export class SpawnManager {
                 var creepmemory: CreepMemory = {
                     role: queueItem.CreepType,
                     room: room.name,
-                    working: false,
+                    status: null,
                     assignment: ""
                 };
                 var spawnOptions: SpawnOptions = {
@@ -27,7 +28,7 @@ export class SpawnManager {
                 };
                 //TODO: figure out better naming convention because this will break
                 var res = spawner.spawnCreep(body, queueItem.CreepType + new Date().getMilliseconds(), spawnOptions);
-
+                console.log("Spawner res: ", res)
                 if (res == OK) {
                     queueItem.QueueNumber -= 1;
                     // if (queueItem.QueueNumber == 0) {
@@ -40,17 +41,17 @@ export class SpawnManager {
         }
     }
 
-    GetSpawnQueue(room: Room): SpawnQueueItem[] {
+    static GetSpawnQueue(room: Room): SpawnQueueItem[] {
         return room.memory.spawnQueue;
     }
 
-    GetBodyForCreepType(type: CreepType): BodyPartConstant[] {
+    static GetBodyForCreepType(type: CreepType): BodyPartConstant[] {
         switch (type) {
             //Just miner for now until i figure out what the rest are gonna look like and how to progress as room levels up
             case CreepType.MINER:
                 return [WORK, CARRY, MOVE];
-            // case CreepType.BUILDER:
-            //     return [WORK, CARRY, MOVE];
+            case CreepType.BUILDER:
+                return [WORK, CARRY, MOVE];
 
             default:
                 console.log("No preset body for creep type ", type);
@@ -58,7 +59,7 @@ export class SpawnManager {
         }
     }
 
-    GetTopOfQueue(queue: SpawnQueueItem[]): SpawnQueueItem | null {
+    static GetTopOfQueue(queue: SpawnQueueItem[]): SpawnQueueItem | null {
         var result = null;
         for (let x = 0; x < queue.length; x++) {
             var item = queue[x];
@@ -80,7 +81,7 @@ export class SpawnManager {
     //     }
     // }
 
-    AddToSpawnQueue(room: Room, item: SpawnQueueItem) {
+    static AddToSpawnQueue(room: Room, item: SpawnQueueItem) {
         room.memory.spawnQueue.push(item);
     }
 }

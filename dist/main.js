@@ -2336,7 +2336,8 @@ class RoomStatuses {
         this.sourcesMapped = false;
         this.roadsCreated = false;
         this.openSpacesCalced = false;
-        this.sourceContainersCreated = false;
+        this.sourceContainersBuilt = false;
+        this.sourceContainersMapped = false;
     }
 }
 class SourceData {
@@ -2365,13 +2366,14 @@ class SourceData {
 }
 
 class SpawnManager {
-    CreateSpawnQueue(room) {
+    static CreateSpawnQueue(room) {
         //TODO: At some point do this right
         room.memory.spawnQueue = [
-            new SpawnQueueItem(CreepType.MINER, 3)
+            new SpawnQueueItem(CreepType.MINER, 3),
+            new SpawnQueueItem(CreepType.BUILDER, 2)
         ];
     }
-    SpawnFromQueue(room) {
+    static SpawnFromQueue(room) {
         var queue = this.GetSpawnQueue(room);
         var spawner = room.find(FIND_MY_SPAWNS)[0];
         if (!spawner.spawning) {
@@ -2381,7 +2383,7 @@ class SpawnManager {
                 var creepmemory = {
                     role: queueItem.CreepType,
                     room: room.name,
-                    working: false,
+                    status: null,
                     assignment: ""
                 };
                 var spawnOptions = {
@@ -2389,6 +2391,7 @@ class SpawnManager {
                 };
                 //TODO: figure out better naming convention because this will break
                 var res = spawner.spawnCreep(body, queueItem.CreepType + new Date().getMilliseconds(), spawnOptions);
+                console.log("Spawner res: ", res);
                 if (res == OK) {
                     queueItem.QueueNumber -= 1;
                     // if (queueItem.QueueNumber == 0) {
@@ -2400,22 +2403,22 @@ class SpawnManager {
             }
         }
     }
-    GetSpawnQueue(room) {
+    static GetSpawnQueue(room) {
         return room.memory.spawnQueue;
     }
-    GetBodyForCreepType(type) {
+    static GetBodyForCreepType(type) {
         switch (type) {
             //Just miner for now until i figure out what the rest are gonna look like and how to progress as room levels up
             case CreepType.MINER:
                 return [WORK, CARRY, MOVE];
-            // case CreepType.BUILDER:
-            //     return [WORK, CARRY, MOVE];
+            case CreepType.BUILDER:
+                return [WORK, CARRY, MOVE];
             default:
                 console.log("No preset body for creep type ", type);
                 return [WORK, CARRY, MOVE];
         }
     }
-    GetTopOfQueue(queue) {
+    static GetTopOfQueue(queue) {
         var result = null;
         for (let x = 0; x < queue.length; x++) {
             var item = queue[x];
@@ -2435,7 +2438,7 @@ class SpawnManager {
     //         existing.QueueNumber += (amount == null) ? 1 : amount;
     //     }
     // }
-    AddToSpawnQueue(room, item) {
+    static AddToSpawnQueue(room, item) {
         room.memory.spawnQueue.push(item);
     }
 }
@@ -2461,7 +2464,6 @@ var CreepType;
 
 class RoomMapper {
     static provision() {
-        var pm = new SpawnManager();
         var rooms = Game.rooms;
         for (var name in rooms) {
             let currentRoom = rooms[name];
@@ -2473,9 +2475,9 @@ class RoomMapper {
             this.populateOpenSourceSpaces(currentRoom);
             this.CreateSourceContainers(currentRoom);
             if (!currentRoom.memory.spawnQueue) {
-                pm.CreateSpawnQueue(currentRoom);
+                SpawnManager.CreateSpawnQueue(currentRoom);
             }
-            pm.SpawnFromQueue(currentRoom);
+            SpawnManager.SpawnFromQueue(currentRoom);
         }
     }
     static mapRooms(currentRoom) {
@@ -2543,7 +2545,7 @@ class RoomMapper {
     static GetOpenSpaces() {
     }
     static CreateSourceContainers(room) {
-        if (room.memory.statuses.sourcesMapped) {
+        if (room.memory.statuses.sourcesMapped && !room.memory.statuses.sourceContainersMapped) {
             _.forIn(room.memory.sources, function (sourceData, key) {
                 sourceData.paths.map(path => {
                     var step = path[path.length - 3];
@@ -2570,6 +2572,7 @@ class RoomMapper {
                     //console.error("Could not place container for path");
                 });
             });
+            room.memory.statuses.sourceContainersMapped = true;
         }
     }
 }
@@ -2581,7 +2584,19 @@ class BaseCreep {
     constructor(creep) {
         this.creep = creep;
     }
+    survive() {
+    }
 }
+
+var CreepStatus;
+(function (CreepStatus) {
+    CreepStatus["HARVESTING"] = "harvesting";
+    CreepStatus["TRANSFERRING"] = "transferring";
+    CreepStatus["BUILDING"] = "building";
+    CreepStatus["MOVING"] = "moving";
+    CreepStatus["FIGHTING"] = "fighting";
+    CreepStatus["REFRESHING"] = "refreshing";
+})(CreepStatus || (CreepStatus = {}));
 
 class HarvesterCreep extends BaseCreep {
     run() {
@@ -2592,7 +2607,6 @@ class HarvesterCreep extends BaseCreep {
         if (!this.creep.memory.assignment) {
             this.AssignSource();
             target = Game.getObjectById(this.creep.memory.assignment);
-            console.log("creep assn: ", this.creep.memory.assignment);
             this.creep.room.memory.sources[this.creep.memory.assignment].harvesterSpace.creepNames.push(this.creep.name);
         }
         else {
@@ -2600,28 +2614,22 @@ class HarvesterCreep extends BaseCreep {
         }
         if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
             if (this.creep.harvest(target) == ERR_NOT_IN_RANGE) {
+                this.creep.memory.status = CreepStatus.MOVING;
                 this.creep.moveTo(target);
             }
+            else {
+                this.creep.memory.status = CreepStatus.HARVESTING;
+            }
         }
-        else if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
-            if (!this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated) {
-                target = this.FindClosestCoontainerConstruction();
-                if (target) {
-                    var res = this.creep.build(target);
-                    if (res == ERR_NOT_IN_RANGE) {
-                        this.creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
-                    }
-                    else if (res == ERR_INVALID_TARGET) {
-                        this.GetSourceData(this.creep.memory.assignment).defaultContainerCreated = true;
-                    }
-                }
+        if (_.sum(this.creep.carry) == this.creep.carryCapacity) {
+            let storage = this.TryGetDefaultContainer();
+            //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
+            if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                this.creep.memory.status = CreepStatus.MOVING;
+                this.creep.moveTo(storage);
             }
             else {
-                let storage = this.TryGetDefaultContainer();
-                //TODO: thos whole thing is bad. Store location in GoingTo memory spot and reuse
-                if (this.creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    this.creep.moveTo(storage);
-                }
+                this.creep.memory.status = CreepStatus.TRANSFERRING;
             }
         }
     }
@@ -2660,13 +2668,35 @@ class HarvesterCreep extends BaseCreep {
     GetSourceData(sourceId) {
         return this.creep.room.memory.sources[sourceId];
     }
-    FindClosestCoontainerConstruction() {
-        var container = this.creep.room.find(FIND_CONSTRUCTION_SITES, {
-            filter: function (site) {
-                return site.structureType == STRUCTURE_CONTAINER;
+}
+
+class BuilderCreep extends BaseCreep {
+    run() {
+        this.DoBuilderThings();
+    }
+    DoBuilderThings() {
+        if (this.creep.memory.status == CreepStatus.BUILDING && this.creep.carry.energy == 0) {
+            this.creep.memory.status = CreepStatus.HARVESTING;
+            this.creep.say('🔄 harvest');
+        }
+        if (this.creep.memory.status != CreepStatus.BUILDING && this.creep.carry.energy == this.creep.carryCapacity) {
+            this.creep.memory.status = CreepStatus.BUILDING;
+            this.creep.say('🚧 build');
+        }
+        if (this.creep.memory.status == CreepStatus.BUILDING) {
+            var targets = this.creep.room.find(FIND_CONSTRUCTION_SITES);
+            if (targets.length) {
+                if (this.creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                    this.creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#ffffff' } });
+                }
             }
-        });
-        return container;
+        }
+        else {
+            var sources = this.creep.room.find(FIND_SOURCES);
+            if (this.creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
+                this.creep.moveTo(sources[0], { visualizePathStyle: { stroke: '#ffaa00' } });
+            }
+        }
     }
 }
 
@@ -2680,7 +2710,9 @@ class CreepManager {
                     harvester.run();
                 }
             }
-            if (creep.memory.role == CreepType.BUILDER) ;
+            if (creep.memory.role == CreepType.BUILDER) {
+                new BuilderCreep(creep).run();
+            }
         }
     }
     static GetOpenSource() {
@@ -2696,6 +2728,9 @@ const loop = ErrorMapper.wrapLoop(() => {
     // Automatically delete memory of missing creeps
     for (const name in Memory.creeps) {
         if (!(name in Game.creeps)) {
+            var creep = Memory.creeps[name];
+            var room = Game.rooms[creep.room];
+            SpawnManager.AddToSpawnQueue(room, new SpawnQueueItem(creep.role, 1));
             delete Memory.creeps[name];
         }
     }

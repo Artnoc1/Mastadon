@@ -1,10 +1,12 @@
+
+
 // example declaration file - remove these and add your own custom typings
 
 // memory extension samples
-interface CreepMemory {
+declare interface CreepMemory {
   role: string;
   room: string;
-  working: boolean;
+  status: "harvesting" | "moving" | "building" | "fighting" | "transferring" | "refreshing" | null;
   assignment: string;
 }
 

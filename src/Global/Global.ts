@@ -7,7 +7,8 @@ declare interface RoomMemory {
         sourcesMapped: boolean;
         roadsCreated: boolean;
         openSpacesCalced: boolean;
-        sourceContainersCreated: boolean;
+        sourceContainersBuilt: boolean;
+        sourceContainersMapped: boolean;
     },
     spawnQueue: any[]
 };

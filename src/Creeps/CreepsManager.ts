@@ -1,5 +1,6 @@
 import { CreepType } from "Spawners";
 import { HarvesterCreep } from "./HarvesterCreep";
+import { BuilderCreep } from "./BuilderCreep";
 
 
 export class CreepManager {
@@ -14,7 +15,7 @@ export class CreepManager {
                 }
             }
             if (creep.memory.role == CreepType.BUILDER) {
-                //Do builder stuff
+                new BuilderCreep(creep).run();
             }
         }
     }

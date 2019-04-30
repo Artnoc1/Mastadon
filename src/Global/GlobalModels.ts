@@ -2,7 +2,8 @@ export class RoomStatuses {
     sourcesMapped: boolean = false;
     roadsCreated: boolean = false;
     openSpacesCalced: boolean = false;
-    sourceContainersCreated: boolean = false;
+    sourceContainersBuilt: boolean = false;
+    sourceContainersMapped: boolean = false;
 }
 
 export class SourceData {
